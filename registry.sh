@@ -5,5 +5,5 @@ docker run --rm -p 5000:5000 \
 -e REGISTRY_AUTH_TOKEN_SERVICE="127.0.0.1:8000" \
 -e REGISTRY_AUTH_TOKEN_ISSUER='127.0.0.1' \
 -e REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/ssl/ca.crt \
--v $(pwd)/easy-rsa-master/easyrsa3/pki/:/ssl:ro \
+-v $(pwd)/easy-rsa-master/easyrsa3/pki/ca_bundle.crt:/ssl/ca.crt:ro \
 --name registry registry:2

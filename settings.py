@@ -133,6 +133,21 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.BasicAuthentication',
     ),
 }
+
+# Quick and dirty config
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives.serialization import load_pem_public_key, \
+        load_pem_private_key
+
+with open('./easy-rsa-master/easyrsa3/pki/issued/server.crt', 'rb') as pub_key_file:
+    pub_key_txt = pub_key_file.read()
+
+with open('./easy-rsa-master/easyrsa3/pki/private/server.key', 'rb') as prv_key_file:
+    prv_key_txt = prv_key_file.read()
+
+#pub_key = load_pem_public_key(pub_key_txt, backend=default_backend())
+prv_key =  load_pem_private_key(prv_key_txt, password=None, backend=default_backend())
+
 import datetime
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER':
@@ -151,10 +166,13 @@ JWT_AUTH = {
     'rest_framework_jwt.utils.jwt_response_payload_handler',
 
 #    'JWT_SECRET_KEY': settings.SECRET_KEY,
+    'JWT_SECRET_KEY': None,
     'JWT_GET_USER_SECRET_KEY': None,
-    'JWT_PUBLIC_KEY': './easy-rsa-master/easyrsa3/pki/ca.crt',
-    'JWT_PRIVATE_KEY': './easy-rsa-master/easyrsa3/pki/private/server.key',
-    'JWT_ALGORITHM': 'HS256',
+#    'JWT_PUBLIC_KEY': pub_key,
+    'JWT_PRIVATE_KEY': prv_key_txt,
+    #'JWT_ALGORITHM': 'RS256',
+    #'JWT_ALGORITHM': 'HS256',
+    'JWT_ALGORITHM': 'ES256',
     'JWT_VERIFY': True,
     'JWT_VERIFY_EXPIRATION': True,
     'JWT_LEEWAY': 0,

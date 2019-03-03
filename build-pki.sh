@@ -1,6 +1,7 @@
 curl -L -O https://storage.googleapis.com/kubernetes-release/easy-rsa/easy-rsa.tar.gz
 tar xzf easy-rsa.tar.gz
 pushd easy-rsa-master/easyrsa3
+export EASYRSA_ALGO=ec
 ./easyrsa init-pki
 MASTER_IP="django-docker-registry-jwt"
 MASTER_IP="127.0.0.1"
