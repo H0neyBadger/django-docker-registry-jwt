@@ -136,22 +136,56 @@ REST_FRAMEWORK = {
 
 # Quick and dirty config
 from cryptography.hazmat.backends import default_backend
+from cryptography.x509 import load_pem_x509_certificate
+from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.serialization import load_pem_public_key, \
-        load_pem_private_key
+        load_pem_private_key, \
+        Encoding, \
+        PublicFormat, \
+        PrivateFormat
 
 with open('./easy-rsa-master/easyrsa3/pki/issued/server.crt', 'rb') as pub_key_file:
+    """
+    https://github.com/docker/libtrust/blob/aabc10ec26b754e797f9028f4589c5b7bd90dc20/util.go#L194
+    Take the DER encoded public key which the JWT token was signed against.
+    Create a SHA256 hash out of it and truncate to 240bits.
+    Split the result into 12 base32 encoded groups with : as delimiter.
+    """
+
+    import base64
+    import hashlib
+
     pub_key_txt = pub_key_file.read()
+    pub_key = load_pem_x509_certificate(pub_key_txt, backend=default_backend())
+    # h = pub_key.fingerprint(hashes.SHA256())
+    
+    # Take the DER encoded public key which the JWT token was signed against.
+    der = pub_key.public_key().public_bytes(
+        encoding=Encoding.DER,
+        format=PublicFormat.SubjectPublicKeyInfo
+    )
+    h = hashlib.sha256(der).digest()
+    # Create a SHA256 hash out of it and truncate to 240bits.
+    t = h[0:30]
+    # Split the result into 12 base32 encoded groups with : as delimiter.
+    b = base64.b32encode(t)
+    r = []
+    for x in range(0, len(b), 4):
+        r.append(b[x:x+4].decode("utf-8"))
+    kid = ':'.join(r)
+    # JWT_AUTH_HEADER_KID is a custom var,
+    # do not search for it in official documentation
+    JWT_AUTH_HEADER_KID = kid
+
 
 with open('./easy-rsa-master/easyrsa3/pki/private/server.key', 'rb') as prv_key_file:
     prv_key_txt = prv_key_file.read()
-
-#pub_key = load_pem_public_key(pub_key_txt, backend=default_backend())
-prv_key =  load_pem_private_key(prv_key_txt, password=None, backend=default_backend())
+    prv_key = load_pem_private_key(prv_key_txt, password=None, backend=default_backend())
 
 import datetime
 JWT_AUTH = {
     'JWT_ENCODE_HANDLER':
-    'rest_framework_jwt.utils.jwt_encode_handler',
+    'handlers.jwt_encode_kid_handler',
 
     'JWT_DECODE_HANDLER':
     'rest_framework_jwt.utils.jwt_decode_handler',
@@ -170,8 +204,6 @@ JWT_AUTH = {
     'JWT_GET_USER_SECRET_KEY': None,
 #    'JWT_PUBLIC_KEY': pub_key,
     'JWT_PRIVATE_KEY': prv_key_txt,
-    #'JWT_ALGORITHM': 'RS256',
-    #'JWT_ALGORITHM': 'HS256',
     'JWT_ALGORITHM': 'ES256',
     'JWT_VERIFY': True,
     'JWT_VERIFY_EXPIRATION': True,

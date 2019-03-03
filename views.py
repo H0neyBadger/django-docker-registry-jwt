@@ -43,7 +43,6 @@ def get_registry_scope(scope, user=None):
         repos = scope.split(' ')
     else:
         repos = []
-    print(repos)
     ret = []
     for r in repos:
         args = r.split(':')
@@ -124,31 +123,11 @@ class DockerObtainJSONWebToken(ObtainJSONWebToken):
         # If the request is unauthenticated the default value of request.user 
         # is an instance of django.contrib.auth.models.AnonymousUser.
         user = request.user
-        print(data, user)
-
+        print(user)
         payload = jwt_docker_payload_handler(request)
         token = jwt_encode_handler(payload)
-        print(token, payload)
         response_data = jwt_response_payload_handler(token, user, request)
         response = Response(response_data)
         return response
-        # serializer = self.get_serializer(data=data)
         
-
-        if serializer.is_valid():
-            user = serializer.object.get('user') or request.user
-            token = serializer.object.get('token')
-            response_data = jwt_response_payload_handler(token, user, request)
-            response = Response(response_data)
-            if api_settings.JWT_AUTH_COOKIE:
-                expiration = (datetime.utcnow() +
-                              api_settings.JWT_EXPIRATION_DELTA)
-                response.set_cookie(api_settings.JWT_AUTH_COOKIE,
-                                    token,
-                                    expires=expiration,
-                                    httponly=True)
-            return response
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST) 
-
 docker_obtain_jwt_token = DockerObtainJSONWebToken.as_view()
