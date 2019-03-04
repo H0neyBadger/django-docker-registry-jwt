@@ -3,6 +3,7 @@ from rest_framework.response import Response
 
 from rest_framework_jwt.settings import api_settings
 from rest_framework_jwt.views import ObtainJSONWebToken
+from rest_framework import authentication, permissions
 
 from datetime import datetime, timedelta
 
@@ -65,7 +66,7 @@ def jwt_docker_payload_handler(request):
     query_params = request.query_params
     if request.user.is_active:
         # the user is active
-        username = request.user.login
+        username = request.user.username
     else:
         # FIXME: check django.contrib.auth.models.AnonymousUser
         username = ""
@@ -112,6 +113,9 @@ class DockerObtainJSONWebToken(ObtainJSONWebToken):
     django rest framework jwt implementation for docker registry
     https://docs.docker.com/registry/spec/auth/jwt/
     """
+    authentication_classes = (authentication.BasicAuthentication,)
+    permission_classes = ()
+
     def get(self, request, *args, **kwargs):
         # read query parameters 
         # example : https://auth.docker.io/token?service=registry.docker.io&scope=repository:samalba/my-app:pull,push
@@ -123,7 +127,6 @@ class DockerObtainJSONWebToken(ObtainJSONWebToken):
         # If the request is unauthenticated the default value of request.user 
         # is an instance of django.contrib.auth.models.AnonymousUser.
         user = request.user
-        print(user)
         payload = jwt_docker_payload_handler(request)
         token = jwt_encode_handler(payload)
         response_data = jwt_response_payload_handler(token, user, request)
