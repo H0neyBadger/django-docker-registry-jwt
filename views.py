@@ -7,6 +7,8 @@ from rest_framework import authentication, permissions
 
 from datetime import datetime, timedelta
 
+from registry.models import Permission
+
 jwt_response_payload_handler = api_settings.JWT_RESPONSE_PAYLOAD_HANDLER
 
 jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -14,7 +16,7 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
 
-def get_registry_scope(scope, user=None):
+def get_registry_scope(scope, service, user=None):
     """
     calculate from scope=repository:samalba/my-app:pull,push
         "access": [
@@ -47,8 +49,29 @@ def get_registry_scope(scope, user=None):
     for r in repos:
         args = r.split(':')
         assert len(args) == 3
-        actions = args[2].split(',')
-        # FIXME: verify user's perms pull, push ...
+        scope_type = args[0]
+        scope_name = args[1]
+        scope_actions = args[2].split(',')
+        # Verify user's perms pull, push ...
+        actions = []
+        try:
+            perm = Permission.objects.filter(
+                image__name=scope_name,
+                image__registry__name=service,
+                user=user
+            ).get()
+            
+            for a in scope_actions:
+                # check queryset if the permission 
+                # exists and allowed
+                e = getattr(perm, a, None)
+                if e:
+                    # allow premission
+                    actions.append(a)
+        except Permission.DoesNotExist :
+            # return empty action set
+            pass
+
         acc = { 
             'type': args[0],
             'name': args[1],
@@ -96,7 +119,11 @@ def jwt_docker_payload_handler(request):
         'jit': 'FIXME' + str(timestamp),
     }
     
-    access = get_registry_scope(query_params.get('scope',''), user=request.user)
+    access = get_registry_scope(
+        query_params.get('scope',''), 
+        query_params.get('service'),
+        user=request.user
+    )
     payload['access'] = access
 
     # if api_settings.JWT_AUDIENCE is not None:
