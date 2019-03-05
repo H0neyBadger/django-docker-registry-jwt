@@ -21,11 +21,22 @@ from rest_framework_jwt.views import obtain_jwt_token, \
                                      verify_jwt_token
 from views import docker_obtain_jwt_token 
 
+from rest_framework import routers
+from registry.views import RegistryViewSet, \
+        ImageViewSet, \
+        PermissionViewSet
+
+router = routers.DefaultRouter()
+router.register(r'registries', RegistryViewSet)
+router.register(r'images', ImageViewSet)
+router.register(r'permissions', PermissionViewSet)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api-token-auth/', obtain_jwt_token),
+    #path('api-token-auth/', obtain_jwt_token),
     path('docker-token-auth/', docker_obtain_jwt_token),
-    path('api-token-refresh/', refresh_jwt_token),
-    path('api-token-verify/', verify_jwt_token),
+    #path('api-token-refresh/', refresh_jwt_token),
+    #path('api-token-verify/', verify_jwt_token),
     path('api-auth/', include('rest_framework.urls')),
+    path('api/v1/', include(router.urls)),
 ]

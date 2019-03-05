@@ -14,7 +14,6 @@ jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
 jwt_decode_handler = api_settings.JWT_DECODE_HANDLER
 jwt_get_username_from_payload = api_settings.JWT_PAYLOAD_GET_USERNAME_HANDLER
 
-
 def get_registry_scope(scope, user=None):
     """
     calculate from scope=repository:samalba/my-app:pull,push
