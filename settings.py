@@ -135,6 +135,9 @@ REST_FRAMEWORK = {
     ),
 }
 
+JWT_EC_CERT_PATH = './pki/issued/token.crt'
+JWT_EC_PRIVATE_KEY_PATH = './pki/private/token.key'
+
 # Quick and dirty config
 from cryptography.hazmat.backends import default_backend
 from cryptography.x509 import load_pem_x509_certificate
@@ -145,7 +148,7 @@ from cryptography.hazmat.primitives.serialization import load_pem_public_key, \
         PublicFormat, \
         PrivateFormat
 
-with open('./easy-rsa-master/easyrsa3/pki/issued/server.crt', 'rb') as pub_key_file:
+with open(JWT_EC_CERT_PATH, 'rb') as pub_key_file:
     """
     https://github.com/docker/libtrust/blob/aabc10ec26b754e797f9028f4589c5b7bd90dc20/util.go#L194
     Take the DER encoded public key which the JWT token was signed against.
@@ -179,7 +182,7 @@ with open('./easy-rsa-master/easyrsa3/pki/issued/server.crt', 'rb') as pub_key_f
     JWT_AUTH_HEADER_KID = kid
 
 
-with open('./easy-rsa-master/easyrsa3/pki/private/server.key', 'rb') as prv_key_file:
+with open(JWT_EC_PRIVATE_KEY_PATH, 'rb') as prv_key_file:
     prv_key_txt = prv_key_file.read()
     prv_key = load_pem_private_key(prv_key_txt, password=None, backend=default_backend())
 
@@ -220,3 +223,4 @@ JWT_AUTH = {
     'JWT_AUTH_COOKIE': None,
 
 }
+
