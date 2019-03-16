@@ -7,7 +7,7 @@ services:
       - REGISTRY_STORAGE_FILESYSTEM_ROOTDIRECTORY=/var/lib/registry
       - REGISTRY_AUTH=token
       - REGISTRY_AUTH_TOKEN_REALM=https://localhost:8443/docker-token-auth/
-      - REGISTRY_AUTH_TOKEN_SERVICE="localhost:5000"
+      - REGISTRY_AUTH_TOKEN_SERVICE="127.0.0.1:5000"
       - REGISTRY_AUTH_TOKEN_ISSUER='127.0.0.1'
       - REGISTRY_AUTH_TOKEN_ROOTCERTBUNDLE=/pki/ca_bundle.crt
     volumes:
@@ -24,6 +24,7 @@ services:
       gunicorn --bind 0.0.0.0:8443
       --certfile=/app/pki/issued/django.crt 
       --keyfile=/app/pki/private/django.key wsgi
+      --access-logfile -
     volumes:
       - ./pki/private/django.key:/app/pki/private/django.key:ro
       - ./pki/issued/django.crt:/app/pki/issued/django.crt:ro
