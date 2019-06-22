@@ -16,14 +16,13 @@ Demo
 # create rsa keys 
 ./build-pki.sh
 # build image and run containers
-sudo docker-compose up -d
-# create/update database schema
-sudo docker-compose exec web python3 manage.py migrate
+./podman-run.sh
 # create admin user 
-sudo docker-compose exec web python3 manage.py createsuperuser
+podman exec -it django-docker-registry-jwt \
+  /usr/bin/entrypoint.sh python3 manage.py createsuperuser
 
 # test your login
-sudo docker login 127.0.0.1:5000
+podman login 127.0.0.1:5000
 # Password: 
 # Login Succeeded
 ```
@@ -61,15 +60,13 @@ curl --cacert ./pki/ca.crt -u admin \
   --data '{"image":"127.0.0.1:5000/django-test", "user":"admin", "pull":true, "push":true}'
 # {"id":1,"image":"127.0.0.1:5000/django-test","user":"admin","push":true,"pull":true}
 
-sudo docker push 127.0.0.1:5000/django-test
-# The push refers to a repository [127.0.0.1:5000/django-test]
-# bbc38b3303a7: Pushed 
-# b1c0701756b0: Pushed 
-# 7a74c09822ff: Pushed 
-# e5f269580026: Pushed 
-# b634b7704ba0: Pushed 
-# b7ba3be6a0d6: Pushed 
-# latest: digest: sha256:702ce186a611ec776dda9faf8683e37a24a121f653885d1ee52f9fcf1297f3e7 size: 1582
+podman push 127.0.0.1:5000/django-test
+# Getting image source signatures
+# Copying blob cfceaafb5a19 done
+# Copying blob 18f589330a95 done
+# Copying config ab412d05a8 done
+# Writing manifest to image destination
+# Storing signatures
 ```
 
 Tests

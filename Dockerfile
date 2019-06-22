@@ -20,10 +20,14 @@ WORKDIR "${WORKDIR}"
 # USER django
 
 # copy django sources
-ADD . "${WORKDIR}"
+ADD "./django-docker-registry-jwt/" "${WORKDIR}"
+ADD "./requirements.txt" "${WORKDIR}"
+ADD "./container/*" "/usr/bin/"
 
 # Create env
-RUN pip3 install -r ./requirements_prd.txt
+RUN pip3 install psycopg2-binary
+RUN pip3 install -r ./requirements.txt
 
-CMD ["gunicorn", "--bind", "0.0.0.0:8000", "wsgi"]
-
+VOLUME "/etc/django/"
+ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+CMD ["/usr/bin/run_django.sh"]

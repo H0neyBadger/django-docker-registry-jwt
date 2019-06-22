@@ -1,5 +1,0 @@
-./pki/*
-*.key
-*.crt
-*.sqlite3
-easy-rsa*
